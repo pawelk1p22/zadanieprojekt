@@ -1,4 +1,4 @@
-﻿#include <vcl.h>
+#include <vcl.h>
 #pragma hdrstop
 #include "Unit1.h"
 #include <vector>
@@ -278,33 +278,55 @@ void __fastcall TForm1::BtnEvaluateClick(TObject *Sender)
         }
     }
 
-    try
+  try
+{
+    std::vector<String> tokens;
+    for(auto b : blocks)
+        tokens.push_back(b->Caption);
+
+    for(size_t i = 0; i < tokens.size(); )
     {
-        double result = StrToFloat(tokens[0]);
-
-        for(size_t i=1; i<tokens.size(); i+=2)
+        if(tokens[i] == "*" || tokens[i] == "/")
         {
-            String op = tokens[i];
-            double val = StrToFloat(tokens[i+1]);
+            double left = StrToFloat(tokens[i-1]);
+            double right = StrToFloat(tokens[i+1]);
+            double res;
 
-            if(op == "+") result += val;
-            else if(op == "-") result -= val;
-            else if(op == "*") result *= val;
-            else if(op == "/")
+            if(tokens[i] == "*") res = left * right;
+            else
             {
-                if(val == 0)
+                if(right == 0)
                 {
                     LabelResult->Caption = "Dzielenie przez 0";
                     return;
                 }
-                result /= val;
+                res = left / right;
             }
-        }
 
-        LabelResult->Caption = FloatToStr(result);
+            tokens[i-1] = FloatToStr(res);
+            tokens.erase(tokens.begin() + i, tokens.begin() + i + 2);
+            i = 0;
+        }
+        else
+        {
+            i++;
+        }
     }
-    catch(...)
+
+    double result = StrToFloat(tokens[0]);
+
+    for(size_t i = 1; i < tokens.size(); i += 2)
     {
-        LabelResult->Caption = "Blad wyrazenia";
+        double val = StrToFloat(tokens[i+1]);
+
+        if(tokens[i] == "+") result += val;
+        else if(tokens[i] == "-") result -= val;
     }
+
+    LabelResult->Caption = FloatToStr(result);
+}
+catch(...)
+{
+    LabelResult->Caption = "Blad wyrazenia";
+}
 }
