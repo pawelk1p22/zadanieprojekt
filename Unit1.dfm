@@ -3,13 +3,15 @@ object Form1: TForm1
   Top = 0
   Caption = 'Edytor Wyrazen'
   ClientHeight = 561
-  ClientWidth = 884
+  ClientWidth = 947
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OldCreateOrder = True
+  PixelsPerInch = 96
   TextHeight = 15
   object Label1: TLabel
     Left = 20
@@ -86,7 +88,7 @@ object Form1: TForm1
   object PanelOperators: TPanel
     Left = 20
     Top = 150
-    Width = 250
+    Width = 445
     Height = 150
     Caption = 'Operatory'
     TabOrder = 6
@@ -94,9 +96,9 @@ object Form1: TForm1
     OnDragOver = PanelDragOver
   end
   object PanelNumbers: TPanel
-    Left = 300
+    Left = 492
     Top = 150
-    Width = 250
+    Width = 421
     Height = 150
     Caption = 'Liczby'
     TabOrder = 7
@@ -106,7 +108,7 @@ object Form1: TForm1
   object PanelExpression: TPanel
     Left = 20
     Top = 320
-    Width = 530
+    Width = 685
     Height = 150
     Caption = 'Wyrazenie'
     TabOrder = 8
@@ -114,7 +116,7 @@ object Form1: TForm1
     OnDragOver = PanelDragOver
   end
   object PanelTrash: TPanel
-    Left = 600
+    Left = 763
     Top = 320
     Width = 150
     Height = 150

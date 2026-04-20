@@ -1,4 +1,4 @@
-#include <vcl.h>
+﻿#include <vcl.h>
 #pragma hdrstop
 #include "Unit1.h"
 #include <vector>
@@ -8,6 +8,9 @@
 #pragma resource "*.dfm"
 
 TForm1 *Form1;
+
+const int MAX_BLOCKS = 50;
+const double MAX_VALUE = 10000;
 
 __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
@@ -53,6 +56,9 @@ void LayoutBlocks(TPanel* panel)
 
 TLabel* CreateBlock(TComponent* owner, String text, TPanel* parent)
 {
+    if(parent->ControlCount >= MAX_BLOCKS)
+        return nullptr;
+
     TLabel* lbl = new TLabel(owner);
     lbl->Parent = parent;
     lbl->Caption = text;
@@ -82,7 +88,13 @@ void __fastcall TForm1::BtnOperatorClick(TObject *Sender)
     TButton* btn = dynamic_cast<TButton*>(Sender);
     if(!btn) return;
 
-    CreateBlock(this, btn->Caption, PanelOperators);
+    TLabel* lbl = CreateBlock(this, btn->Caption, PanelOperators);
+    if(!lbl)
+    {
+        LabelResult->Caption = "Limit blokow (50)";
+        return;
+    }
+
     LayoutBlocks(PanelOperators);
 }
 
@@ -90,7 +102,29 @@ void __fastcall TForm1::BtnAddNumberClick(TObject *Sender)
 {
     if(EditNumber->Text.IsEmpty()) return;
 
-    CreateBlock(this, EditNumber->Text, PanelNumbers);
+    try
+    {
+        double val = StrToFloat(EditNumber->Text);
+
+        if(val > MAX_VALUE || val < -MAX_VALUE)
+        {
+            LabelResult->Caption = "Liczba max 10000";
+            return;
+        }
+    }
+    catch(...)
+    {
+        LabelResult->Caption = "Niepoprawna liczba";
+        return;
+    }
+
+    TLabel* lbl = CreateBlock(this, EditNumber->Text, PanelNumbers);
+    if(!lbl)
+    {
+        LabelResult->Caption = "Limit blokow (50)";
+        return;
+    }
+
     LayoutBlocks(PanelNumbers);
 }
 
@@ -278,55 +312,63 @@ void __fastcall TForm1::BtnEvaluateClick(TObject *Sender)
         }
     }
 
-  try
-{
-    std::vector<String> tokens;
-    for(auto b : blocks)
-        tokens.push_back(b->Caption);
-
-    for(size_t i = 0; i < tokens.size(); )
+    try
     {
-        if(tokens[i] == "*" || tokens[i] == "/")
+        for(size_t i = 0; i < tokens.size(); )
         {
-            double left = StrToFloat(tokens[i-1]);
-            double right = StrToFloat(tokens[i+1]);
-            double res;
-
-            if(tokens[i] == "*") res = left * right;
-            else
+            if(tokens[i] == "*" || tokens[i] == "/")
             {
-                if(right == 0)
+                double left = StrToFloat(tokens[i-1]);
+                double right = StrToFloat(tokens[i+1]);
+                double res;
+
+                if(tokens[i] == "*") res = left * right;
+                else
                 {
-                    LabelResult->Caption = "Dzielenie przez 0";
+                    if(right == 0)
+                    {
+                        LabelResult->Caption = "Dzielenie przez 0";
+                        return;
+                    }
+                    res = left / right;
+                }
+
+                if(res > MAX_VALUE || res < -MAX_VALUE)
+                {
+                    LabelResult->Caption = "Wynik poza zakresem";
                     return;
                 }
-                res = left / right;
+
+                tokens[i-1] = FloatToStr(res);
+                tokens.erase(tokens.begin() + i, tokens.begin() + i + 2);
+                i = 0;
             }
-
-            tokens[i-1] = FloatToStr(res);
-            tokens.erase(tokens.begin() + i, tokens.begin() + i + 2);
-            i = 0;
+            else
+            {
+                i++;
+            }
         }
-        else
+
+        double result = StrToFloat(tokens[0]);
+
+        for(size_t i = 1; i < tokens.size(); i += 2)
         {
-            i++;
+            double val = StrToFloat(tokens[i+1]);
+
+            if(tokens[i] == "+") result += val;
+            else if(tokens[i] == "-") result -= val;
+
+            if(result > MAX_VALUE || result < -MAX_VALUE)
+            {
+                LabelResult->Caption = "Wynik poza zakresem";
+                return;
+            }
         }
+
+        LabelResult->Caption = FloatToStr(result);
     }
-
-    double result = StrToFloat(tokens[0]);
-
-    for(size_t i = 1; i < tokens.size(); i += 2)
+    catch(...)
     {
-        double val = StrToFloat(tokens[i+1]);
-
-        if(tokens[i] == "+") result += val;
-        else if(tokens[i] == "-") result -= val;
+        LabelResult->Caption = "Blad wyrazenia";
     }
-
-    LabelResult->Caption = FloatToStr(result);
-}
-catch(...)
-{
-    LabelResult->Caption = "Blad wyrazenia";
-}
 }
